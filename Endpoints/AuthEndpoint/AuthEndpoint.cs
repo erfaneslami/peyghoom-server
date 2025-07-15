@@ -1,4 +1,6 @@
-﻿namespace Peyghoom.Endpoints.AuthEndpoint;
+﻿using Peyghoom.Endpoints.AuthEndpoint.Contracts;
+
+namespace Peyghoom.Endpoints.AuthEndpoint;
 
 public class AuthEndpoint: IEndpointGroup
 {
@@ -7,15 +9,18 @@ public class AuthEndpoint: IEndpointGroup
         var auth = endpointRouteBuilder.MapGroup("auth/");
 
 
-        auth.MapPost("/login", () =>
+
+        auth.MapPost("/otp", (OtpRequest request) =>
+        {
+            return Results.Ok("test");
+            
+        });
+
+        
+        auth.MapPost("/otp/validate", () =>
         {
             return Results.Ok("test");
         });
 
-        
-        auth.MapPost("/register", () =>
-        {
-            return Results.Ok("test");
-        });
     }
 }

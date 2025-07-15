@@ -9,6 +9,8 @@ namespace Peyghoom
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.AddWebAppConfigs();
+            
             // Add services to the container.
             builder.Services.AddAuthorization();
 
