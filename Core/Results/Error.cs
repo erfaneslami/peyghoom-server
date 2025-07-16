@@ -25,6 +25,6 @@ public record Error
     public static Error Validation(string? code, string message = "Bad Request") =>
         new (code, message, ErrorType.Validation);
     
-    public static Error Conflict(string? code, string message) =>
+    public static Error Conflict( string message, string? code = "") =>
         new (code, message, ErrorType.Conflict);
 }

@@ -1,17 +1,26 @@
-﻿using Peyghoom.Services.CacheService.Models;
+﻿using Peyghoom.Core.Results;
+using Peyghoom.Services.CacheService.Models;
 
 namespace Peyghoom.Services.CacheService;
 
 public class CacheService: ICacheService
 {
-    private Dictionary<long, OtpCacheInfo> OtpCache { get; set; } = new();
-    public void CachePhoneNumberOtp(long phoneNumber, string otp)
+    private readonly Dictionary<long, OtpCacheInfo> _otpCache = new();
+    public Result CachePhoneNumberOtp(long phoneNumber, string otp)
     {
-        OtpCache.Add(phoneNumber,new OtpCacheInfo()
+        _otpCache.TryGetValue(phoneNumber, out var optInfo);
+        if (optInfo != null)
+        {
+            return Result.Failure(Error.Conflict("Opt already exist for your phone number"));
+        }
+        
+        _otpCache.Add(phoneNumber,new OtpCacheInfo()
         {
            Otp = otp,
            PhoneNumber = phoneNumber,
            CreateAt = new DateTime()
         });
+        
+        return Result.Success();
     }
 }

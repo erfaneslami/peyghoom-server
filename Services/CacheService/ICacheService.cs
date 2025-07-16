@@ -1,6 +1,8 @@
-﻿namespace Peyghoom.Services.CacheService;
+﻿using Peyghoom.Core.Results;
+
+namespace Peyghoom.Services.CacheService;
 
 public interface ICacheService
 {
-    public void CachePhoneNumberOtp(long phoneNumber, string otp);
+    public Result CachePhoneNumberOtp(long phoneNumber, string otp);
 }
