@@ -19,12 +19,12 @@ public record Error
     public static readonly Error None = new(string.Empty, string.Empty, ErrorType.Failure);
     public static readonly Error NullValue = new("Error.NullValue", "Null value was provided", ErrorType.Failure);
 
-    public static Error NotFound(string? code, string message = "The entity was not found!") =>
+    public static Error NotFound(string message = "The entity was not found!",string code = "1" ) =>
         new (code, message, ErrorType.NotFound);
     
-    public static Error Validation(string? code, string message = "Bad Request") =>
+    public static Error Validation( string message = "Bad Request", string code = "2") =>
         new (code, message, ErrorType.Validation);
     
-    public static Error Conflict( string message, string? code = "") =>
+    public static Error Conflict( string message, string code = "3") =>
         new (code, message, ErrorType.Conflict);
 }
