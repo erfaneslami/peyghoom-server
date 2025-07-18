@@ -5,7 +5,7 @@ public record Error
 
     private string? Code { get; }
     private string? Message { get; }
-    private ErrorType ErrorType { get; }
+    public ErrorType ErrorType { get; }
     
     private Error(string? code, string? message, ErrorType errorType)
     {

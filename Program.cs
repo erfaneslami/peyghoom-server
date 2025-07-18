@@ -1,5 +1,5 @@
 
-using Peyghoom.Extensions;
+using Peyghoom.Core.Extensions;
 
 namespace Peyghoom
 {
@@ -10,6 +10,7 @@ namespace Peyghoom
             var builder = WebApplication.CreateBuilder(args);
 
             builder.AddWebAppConfigs();
+            
             
             // Add services to the container.
             builder.Services.AddAuthorization();
@@ -27,7 +28,9 @@ namespace Peyghoom
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
+            
             app.MapEndpointsGroup();
 
             app.Run();

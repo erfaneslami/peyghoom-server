@@ -1,6 +1,6 @@
 ﻿using Peyghoom.Endpoints;
 
-namespace Peyghoom.Extensions;
+namespace Peyghoom.Core.Extensions;
 
 public static class EndpointGroupExtensions
 {
