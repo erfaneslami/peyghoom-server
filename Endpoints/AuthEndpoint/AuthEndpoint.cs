@@ -1,4 +1,5 @@
-﻿using Peyghoom.Core.Results;
+﻿using System.Security.Claims;
+using Peyghoom.Core.Results;
 using Peyghoom.Endpoints.AuthEndpoint.Contracts;
 using Peyghoom.Services.AuthService;
 
@@ -28,10 +29,30 @@ public class AuthEndpoint: IEndpointGroup
         });
 
         
-        auth.MapPost("/verification-code/validate", () =>
+        auth.MapPost("/verification-code/verify", (VerifyOptRequest request, HttpContext httpContext, IAuthService authService) =>
         {
+            var phoneNumberValue = httpContext.User.FindFirstValue("phone_number");
+            int.TryParse(phoneNumberValue, out var phoneNumber);
+           
+            var validateOtpResult = authService.ValidateOtp(phoneNumber, request.Code);
+            if (validateOtpResult.IsFailure) return validateOtpResult.ToProblemDetail();
+
+            var isUserRegistered = authService.IsUserRegistered(phoneNumber);
+            if (isUserRegistered.IsFailure) return isUserRegistered.ToProblemDetail();
+
+            if (!isUserRegistered.Value)
+            {
+                var regToken = authService.GenerateRegisterToken(phoneNumber);
+                // TODO: create user in database
+                // TODO: redirect user to register page with regToken
+            }
+            else
+            {
+                // TODO: create access refresh token and redirect user to main page
+            }
+            
             return Results.Ok("test");
-        });
+        }).RequireAuthorization("OTPVerify");
  
     }
 }

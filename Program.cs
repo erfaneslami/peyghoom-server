@@ -13,7 +13,7 @@ namespace Peyghoom
             
             
             // Add services to the container.
-            builder.Services.AddAuthorization();
+            // builder.Services.AddAuthorization();
 
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();

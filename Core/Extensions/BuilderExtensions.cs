@@ -48,12 +48,16 @@ public static class BuilderExtensions
                ValidIssuer = tokenOption.Issuer,
                ValidateAudience = false,
                ValidateLifetime = true,
-               ValidateIssuerSigningKey = true,
                ClockSkew = TimeSpan.Zero,
                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenOption.SecretKey))
             };
          });
 
+      builder.Services.AddAuthorization(options =>
+      {
+         options.AddPolicy("OTPVerify", policy => policy.RequireClaim("purpose", "otp"));
+         options.AddPolicy("REGISTER", policy => policy.RequireClaim("purpose", "register"));
+      });
       return builder;
    }
 

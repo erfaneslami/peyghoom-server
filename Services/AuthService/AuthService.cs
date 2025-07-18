@@ -34,7 +34,7 @@ public class AuthService: IAuthService
     public Result<string> GenerateOtpToken(long phoneNumber)
     {
         int.TryParse(_tokenOption.OtpExpire, out var otpExpireMin);
-        var expireDate = new DateTime().AddMinutes(otpExpireMin);
+        var expireDate = DateTime.Now.AddMinutes(otpExpireMin);
         var claims = new List<Claim>()
         {
             new ("purpose", "otp"),
@@ -47,7 +47,7 @@ public class AuthService: IAuthService
     public Result<string> GenerateRegisterToken(long phoneNumber)
     {
         int.TryParse(_tokenOption.RegisterExpire, out var registerExpire);
-        var expireDate = new DateTime().AddMinutes(registerExpire);
+        var expireDate = DateTime.Now.AddMinutes(registerExpire);
         var claims = new List<Claim>()
         {
             new ("purpose", "register"),
@@ -57,8 +57,33 @@ public class AuthService: IAuthService
         
     }
 
+    public Result<string> GenerateAccessToken(long phoneNumber)
+    {
+        throw new NotImplementedException();
+    }
 
-    public void ValidateOtp(long phoneNumber, string otp)
+    public Result<string> GenerateRefreshToken(long phoneNumber)
+    {
+        throw new NotImplementedException();
+    }
+
+
+    public Result ValidateOtp(long phoneNumber, string otp)
+    {
+        var otpCacheInfoResult = _cacheService.GetOtpInfo(phoneNumber);
+        if (otpCacheInfoResult.IsFailure) return Result.Failure(otpCacheInfoResult.Error);
+
+        if (otpCacheInfoResult.Value.Otp == otp)
+        {
+            return Result.Success();
+        }
+        else
+        {
+            return Result.Failure(Error.Conflict("Wrong OTP, please check your code and try again"));
+        }
+    }
+
+    public Result<bool> IsUserRegistered(long phoneNumber)
     {
         throw new NotImplementedException();
     }
