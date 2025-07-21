@@ -48,6 +48,7 @@ public class AuthEndpoint: IEndpointGroup
             }
             else
             {
+                // var accessToken = authService.GenerateAccessToken(phoneNumber);
                 // TODO: create access refresh token and redirect user to main page
             }
             
