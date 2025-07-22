@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Peyghoom.Core.Results;
 using Peyghoom.Endpoints.AuthEndpoint.Contracts;
+using Peyghoom.Entities;
 using Peyghoom.Services.AuthService;
 
 namespace Peyghoom.Endpoints.AuthEndpoint;
@@ -37,6 +38,7 @@ public class AuthEndpoint: IEndpointGroup
             var validateOtpResult = authService.ValidateOtp(phoneNumber, request.Code);
             if (validateOtpResult.IsFailure) return validateOtpResult.ToProblemDetail();
 
+            var user = new User();
             var isUserRegistered = authService.IsUserRegistered(phoneNumber);
             if (isUserRegistered.IsFailure) return isUserRegistered.ToProblemDetail();
 
@@ -48,7 +50,8 @@ public class AuthEndpoint: IEndpointGroup
             }
             else
             {
-                // var accessToken = authService.GenerateAccessToken(phoneNumber);
+                var accessToken = authService.GenerateAccessToken(user);
+                var refreshToken = authService.GenerateRefreshToken();
                 // TODO: create access refresh token and redirect user to main page
             }
             

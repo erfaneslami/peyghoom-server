@@ -29,6 +29,11 @@ public static class BuilderExtensions
 
       return builder;
    }
+
+   private static WebApplicationBuilder AddMongoDbConfig(this WebApplicationBuilder builder)
+   {
+      builder.Services.Configure< ff>()
+   }
    private static WebApplicationBuilder AddAuthenticationAuthorization(this WebApplicationBuilder builder)
    {
       var tokenOption = builder.Configuration.GetSection(TokenOption.Token).Get<TokenOption>();

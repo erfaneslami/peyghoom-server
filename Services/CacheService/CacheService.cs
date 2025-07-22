@@ -22,15 +22,16 @@ public class CacheService: ICacheService
         {
             return Result.Failure(Error.Conflict("Opt already exist for your phone number"));
         }
-
         _memoryCache.Set(phoneNumber, new OtpCacheInfo()
         {
             Otp = otp,
             PhoneNumber = phoneNumber,
             CreateAt = new DateTime()
         }, TimeSpan.FromSeconds(120));
-        
+
+        var appdomain = AppDomain.CreateDomain("Secure appdomain");
         return Result.Success();
+
     }
 
     public Result<OtpCacheInfo> GetOtpInfo(long phoneNumber)
