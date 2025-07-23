@@ -1,6 +1,8 @@
 ﻿using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using MongoDB.Driver;
 using Peyghoom.Core.Options;
 using Peyghoom.Services.AuthService;
 using Peyghoom.Services.CacheService;
@@ -32,7 +34,21 @@ public static class BuilderExtensions
 
    private static WebApplicationBuilder AddMongoDbConfig(this WebApplicationBuilder builder)
    {
-      builder.Services.Configure< ff>()
+      // TODO:README
+      builder.Services.AddSingleton<IMongoClient>(sp =>
+      {
+         var settings = sp.GetRequiredService<IOptionsSnapshot<ConnectionStringsOptions>>().Value;
+         return new MongoClient(settings.PeyghoomMongoDb);
+      });
+
+      builder.Services.AddScoped<IMongoDatabase>(sp =>
+      {
+         var settings = sp.GetRequiredService<IOptionsSnapshot<ConnectionStringsOptions>>().Value;
+         var client = sp.GetRequiredService<IMongoClient>();
+         return client.GetDatabase(settings.PeyghoomMongoDb);
+      });
+      
+      return builder;
    }
    private static WebApplicationBuilder AddAuthenticationAuthorization(this WebApplicationBuilder builder)
    {
@@ -69,6 +85,7 @@ public static class BuilderExtensions
    private static WebApplicationBuilder AddOptions(this WebApplicationBuilder builder)
    {
       builder.Services.Configure<TokenOption>(builder.Configuration.GetSection(TokenOption.Token));
+      builder.Services.Configure<ConnectionStringsOptions>(builder.Configuration.GetSection(ConnectionStringsOptions.ConnectionString));
 
       return builder;
    }
