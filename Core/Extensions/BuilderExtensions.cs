@@ -16,7 +16,8 @@ public static class BuilderExtensions
 
       builder.AddServices();
       builder.AddAuthenticationAuthorization();
-      builder.AddOptions(); 
+      builder.AddOptions();
+      builder.AddMongoDbConfig();
       
       return builder;
    }
