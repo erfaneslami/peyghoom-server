@@ -98,11 +98,6 @@ public class AuthService: IAuthService
         }
     }
 
-    public Result<bool> IsUserRegistered(long phoneNumber)
-    {
-        throw new NotImplementedException();
-    }
-
     public void RetrievePhoneNumber(string otpToken)
     {
         throw new NotImplementedException();

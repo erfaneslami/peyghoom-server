@@ -1,7 +1,9 @@
 ﻿using System.Security.Claims;
+using MongoDB.Bson;
 using Peyghoom.Core.Results;
 using Peyghoom.Endpoints.AuthEndpoint.Contracts;
 using Peyghoom.Entities;
+using Peyghoom.Repositories.UserRepository;
 using Peyghoom.Services.AuthService;
 
 namespace Peyghoom.Endpoints.AuthEndpoint;
@@ -30,7 +32,7 @@ public class AuthEndpoint: IEndpointGroup
         });
 
         
-        auth.MapPost("/verification-code/verify", (VerifyOptRequest request, HttpContext httpContext, IAuthService authService) =>
+        auth.MapPost("/verification-code/verify", async (VerifyOptRequest request, HttpContext httpContext, IAuthService authService, IUserRepository userRepository) =>
         {
             var phoneNumberValue = httpContext.User.FindFirstValue("phone_number");
             int.TryParse(phoneNumberValue, out var phoneNumber);
@@ -38,14 +40,11 @@ public class AuthEndpoint: IEndpointGroup
             var validateOtpResult = authService.ValidateOtp(phoneNumber, request.Code);
             if (validateOtpResult.IsFailure) return validateOtpResult.ToProblemDetail();
 
-            var user = new User();
-            var isUserRegistered = authService.IsUserRegistered(phoneNumber);
-            if (isUserRegistered.IsFailure) return isUserRegistered.ToProblemDetail();
+            var user = await userRepository.GetUserByPhoneNumberAsync(phoneNumber);
 
-            if (!isUserRegistered.Value)
+            if (user == null)
             {
                 var regToken = authService.GenerateRegisterToken(phoneNumber);
-                // TODO: create user in database
                 // TODO: redirect user to register page with regToken
             }
             else

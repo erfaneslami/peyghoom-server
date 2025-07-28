@@ -11,5 +11,4 @@ public interface IAuthService
    public Result<string> GenerateAccessToken(User user);
    public Result<string> GenerateRefreshToken();
    public Result ValidateOtp(long phoneNumber, string otp);
-   public Result<bool> IsUserRegistered(long phoneNumber);
 }

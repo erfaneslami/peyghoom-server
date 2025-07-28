@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
 using Peyghoom.Core.Options;
+using Peyghoom.Repositories.UserRepository;
 using Peyghoom.Services.AuthService;
 using Peyghoom.Services.CacheService;
 
@@ -28,6 +29,7 @@ public static class BuilderExtensions
       builder.Services.AddMemoryCache();
       
       builder.Services.AddScoped<IAuthService, AuthService>();
+      builder.Services.AddScoped<IUserRepository, UserRepository>();
       builder.Services.AddSingleton<ICacheService, CacheService>();
 
       return builder;
