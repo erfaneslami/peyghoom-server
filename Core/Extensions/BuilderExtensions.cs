@@ -40,15 +40,16 @@ public static class BuilderExtensions
       // TODO:README
       builder.Services.AddSingleton<IMongoClient>(sp =>
       {
-         var settings = sp.GetRequiredService<IOptionsSnapshot<ConnectionStringsOptions>>().Value;
+         var settings = sp.GetRequiredService<IOptions<ConnectionStringsOptions>>().Value;
          return new MongoClient(settings.PeyghoomMongoDb);
       });
 
-      builder.Services.AddScoped<IMongoDatabase>(sp =>
+      builder.Services.AddSingleton<IMongoDatabase>(sp =>
       {
-         var settings = sp.GetRequiredService<IOptionsSnapshot<ConnectionStringsOptions>>().Value;
+         var settings = sp.GetRequiredService<IOptions<ConnectionStringsOptions>>().Value;
          var client = sp.GetRequiredService<IMongoClient>();
-         return client.GetDatabase(settings.PeyghoomMongoDb);
+         Console.WriteLine(settings.PeyghoomMongoDb);
+         return client.GetDatabase(settings.DatabaseName);
       });
       
       return builder;

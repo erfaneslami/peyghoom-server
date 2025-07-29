@@ -7,7 +7,9 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Peyghoom.Core.Options;
 using Peyghoom.Core.Results;
+using Peyghoom.Endpoints.AuthEndpoint.Contracts;
 using Peyghoom.Entities;
+using Peyghoom.Repositories.UserRepository;
 using Peyghoom.Services.CacheService;
 
 namespace Peyghoom.Services.AuthService;
@@ -16,10 +18,12 @@ public class AuthService: IAuthService
 {
     private readonly ICacheService _cacheService;
     private readonly TokenOption _tokenOption;
+    private readonly IUserRepository _userRepository;
     
-    public AuthService(ICacheService cacheService, IOptionsSnapshot<TokenOption> optionsSnapshot)
+    public AuthService(ICacheService cacheService, IOptionsSnapshot<TokenOption> optionsSnapshot, IUserRepository userRepository)
     {
         _cacheService = cacheService;
+        _userRepository = userRepository;
         _tokenOption = optionsSnapshot.Value;
     }
 
@@ -33,6 +37,20 @@ public class AuthService: IAuthService
 
         return Result.Success();
     }
+
+    public async Task<Result<User>> RegisterUserAsync(RegisterUserCommand registerUserCommand)
+    {
+        var user = await _userRepository.CreateUserAsync(new User()
+        {
+            UserName = registerUserCommand.UserName,
+            FirstName = registerUserCommand.FirstName,
+            LastName = registerUserCommand.LastName,
+            PhoneNumber = registerUserCommand.PhoneNumber,
+        });
+
+        return user;
+    }
+    
 
     public Result<string> GenerateOtpToken(long phoneNumber)
     {
@@ -96,11 +114,6 @@ public class AuthService: IAuthService
         {
             return Result.Failure(Error.Conflict("Wrong OTP, please check your code and try again"));
         }
-    }
-
-    public void RetrievePhoneNumber(string otpToken)
-    {
-        throw new NotImplementedException();
     }
 
     private string _generateRandomOtp()

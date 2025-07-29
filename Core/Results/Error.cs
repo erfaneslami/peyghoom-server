@@ -3,11 +3,11 @@
 public record Error
 {
 
-    private string? Code { get; }
-    private string? Message { get; }
+    public string Code { get; }
+    public string Message { get; }
     public ErrorType ErrorType { get; }
     
-    private Error(string? code, string? message, ErrorType errorType)
+    private Error(string code, string message, ErrorType errorType)
     {
         Code = code;
         Message = message;

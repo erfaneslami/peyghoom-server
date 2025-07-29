@@ -22,8 +22,9 @@ public class UserRepository: IUserRepository
         return await _users.Find(user => user.PhoneNumber == phoneNumber).FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task CreateUserAsync(User user, CancellationToken cancellationToken = default)
+    public async Task<User> CreateUserAsync(User user, CancellationToken cancellationToken = default)
     {
-        await _users.InsertOneAsync(user, cancellationToken: cancellationToken); 
+        await _users.InsertOneAsync(user, cancellationToken: cancellationToken);
+        return user;
     }
 }

@@ -29,7 +29,6 @@ public class CacheService: ICacheService
             CreateAt = new DateTime()
         }, TimeSpan.FromSeconds(120));
 
-        var appdomain = AppDomain.CreateDomain("Secure appdomain");
         return Result.Success();
 
     }

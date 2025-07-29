@@ -35,7 +35,7 @@ public class AuthEndpoint: IEndpointGroup
         auth.MapPost("/verification-code/verify", async (VerifyOptRequest request, HttpContext httpContext, IAuthService authService, IUserRepository userRepository) =>
         {
             var phoneNumberValue = httpContext.User.FindFirstValue("phone_number");
-            int.TryParse(phoneNumberValue, out var phoneNumber);
+            long.TryParse(phoneNumberValue, out var phoneNumber);
            
             var validateOtpResult = authService.ValidateOtp(phoneNumber, request.Code);
             if (validateOtpResult.IsFailure) return validateOtpResult.ToProblemDetail();
@@ -44,18 +44,61 @@ public class AuthEndpoint: IEndpointGroup
 
             if (user == null)
             {
-                var regToken = authService.GenerateRegisterToken(phoneNumber);
-                // TODO: redirect user to register page with regToken
+                var registrationTokenResult = authService.GenerateRegisterToken(phoneNumber);
+                if (registrationTokenResult.IsFailure) return registrationTokenResult.ToProblemDetail();
+                
+                // TODO: return proper code or something for client to redirection 
+                return Results.Ok(new
+                {
+                    registerationToken = registrationTokenResult,
+                });
             }
             else
             {
-                var accessToken = authService.GenerateAccessToken(user);
-                var refreshToken = authService.GenerateRefreshToken();
-                // TODO: create access refresh token and redirect user to main page
+                var accessTokenResult = authService.GenerateAccessToken(user);
+                var refreshTokenResult = authService.GenerateRefreshToken();
+                
+                if (accessTokenResult.IsFailure) return accessTokenResult.ToProblemDetail(); 
+                if (refreshTokenResult.IsFailure) return refreshTokenResult.ToProblemDetail();
+                
+                return Results.Ok(new
+                {
+                    accessToken = accessTokenResult.Value,
+                    refreshToken = refreshTokenResult.Value,
+                });
             }
             
-            return Results.Ok("test");
         }).RequireAuthorization("OTPVerify");
- 
+
+        auth.MapPost("register", async (RegisterRequest request,HttpContext httpContext, IAuthService authService ) =>
+        {
+            
+            var phoneNumberValue = httpContext.User.FindFirstValue("phone_number");
+            long.TryParse(phoneNumberValue, out var phoneNumber);
+
+            var userResult = await authService.RegisterUserAsync(new RegisterUserCommand()
+            {
+                PhoneNumber = phoneNumber,
+                UserName = request.UserName,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+            });
+            
+            if (userResult.IsFailure) return userResult.ToProblemDetail(); 
+            
+            
+            var accessTokenResult = authService.GenerateAccessToken(userResult.Value);
+            var refreshTokenResult = authService.GenerateRefreshToken();
+                
+            if (accessTokenResult.IsFailure) return accessTokenResult.ToProblemDetail(); 
+            if (refreshTokenResult.IsFailure) return refreshTokenResult.ToProblemDetail();
+            
+            return Results.Ok(new
+            {
+                accessToken = accessTokenResult.Value,
+                refreshToken = refreshTokenResult.Value,
+            });
+            
+        }).RequireAuthorization("REGISTER");
     }
 }
