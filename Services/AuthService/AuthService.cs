@@ -5,10 +5,12 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using MongoDB.Bson;
 using Peyghoom.Core.Options;
 using Peyghoom.Core.Results;
 using Peyghoom.Endpoints.AuthEndpoint.Contracts;
 using Peyghoom.Entities;
+using Peyghoom.Repositories.AuthRepository;
 using Peyghoom.Repositories.UserRepository;
 using Peyghoom.Services.CacheService;
 
@@ -19,11 +21,13 @@ public class AuthService: IAuthService
     private readonly ICacheService _cacheService;
     private readonly TokenOption _tokenOption;
     private readonly IUserRepository _userRepository;
+    private readonly IAuthRepository _authRepository;
     
-    public AuthService(ICacheService cacheService, IOptionsSnapshot<TokenOption> optionsSnapshot, IUserRepository userRepository)
+    public AuthService(ICacheService cacheService, IOptionsSnapshot<TokenOption> optionsSnapshot, IUserRepository userRepository, IAuthRepository authRepository)
     {
         _cacheService = cacheService;
         _userRepository = userRepository;
+        _authRepository = authRepository;
         _tokenOption = optionsSnapshot.Value;
     }
 
@@ -98,6 +102,20 @@ public class AuthService: IAuthService
         using var rng = RandomNumberGenerator.Create();
         rng.GetBytes(bytes);
         return Convert.ToBase64String(bytes);
+    }
+
+    public async Task<Result<RefreshToken>> StoreRefreshTokenAsync(string token, ObjectId userId)
+    {
+        double.TryParse(_tokenOption.RefreshTokenExpireDays, out var refreshExpire);
+        var refreshToken = new RefreshToken()
+        {
+            Token = token,
+            ExpireAt = DateTime.Now.AddDays(refreshExpire),
+            UserId = userId
+        };
+
+        await _authRepository.CreateRefreshTokenAsync(refreshToken);
+        return refreshToken;
     }
 
 

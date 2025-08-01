@@ -27,4 +27,10 @@ public record Error
     
     public static Error Conflict( string message, string code = "3") =>
         new (code, message, ErrorType.Conflict);
+    
+    
+    public static Error UnAuthorize( string message = "not authorized", string code = "5") =>
+        new (code, message, ErrorType.Unauthorized);
+    public static Error ServerError( string message, string code = "6") =>
+        new (code, message, ErrorType.InternalServerError);
 }

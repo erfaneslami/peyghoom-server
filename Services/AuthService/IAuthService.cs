@@ -1,4 +1,5 @@
-﻿using Peyghoom.Core.Results;
+﻿using MongoDB.Bson;
+using Peyghoom.Core.Results;
 using Peyghoom.Endpoints.AuthEndpoint.Contracts;
 using Peyghoom.Entities;
 
@@ -12,6 +13,7 @@ public interface IAuthService
    public Result<string> GenerateRegisterToken(long phoneNumber);
    public Result<string> GenerateAccessToken(User user);
    public Result<string> GenerateRefreshToken();
+   public Task<Result<RefreshToken>> StoreRefreshTokenAsync(string token, ObjectId userId);
    public Result ValidateOtp(long phoneNumber, string otp);
 }
 

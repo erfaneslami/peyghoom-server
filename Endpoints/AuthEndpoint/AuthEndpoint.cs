@@ -3,6 +3,7 @@ using MongoDB.Bson;
 using Peyghoom.Core.Results;
 using Peyghoom.Endpoints.AuthEndpoint.Contracts;
 using Peyghoom.Entities;
+using Peyghoom.Repositories.AuthRepository;
 using Peyghoom.Repositories.UserRepository;
 using Peyghoom.Services.AuthService;
 
@@ -32,7 +33,7 @@ public class AuthEndpoint: IEndpointGroup
         });
 
         
-        auth.MapPost("/verification-code/verify", async (VerifyOptRequest request, HttpContext httpContext, IAuthService authService, IUserRepository userRepository) =>
+        auth.MapPost("/verification-code/verify", async (VerifyOptRequest request, HttpContext httpContext,HttpResponse httpResponse, IAuthService authService, IUserRepository userRepository) =>
         {
             var phoneNumberValue = httpContext.User.FindFirstValue("phone_number");
             long.TryParse(phoneNumberValue, out var phoneNumber);
@@ -50,16 +51,28 @@ public class AuthEndpoint: IEndpointGroup
                 // TODO: return proper code or something for client to redirection 
                 return Results.Ok(new
                 {
-                    registerationToken = registrationTokenResult,
+                    registerationToken = registrationTokenResult.Value,
                 });
             }
             else
             {
                 var accessTokenResult = authService.GenerateAccessToken(user);
                 var refreshTokenResult = authService.GenerateRefreshToken();
+
                 
                 if (accessTokenResult.IsFailure) return accessTokenResult.ToProblemDetail(); 
                 if (refreshTokenResult.IsFailure) return refreshTokenResult.ToProblemDetail();
+                
+                var storeRefResult = await authService.StoreRefreshTokenAsync(refreshTokenResult.Value, user.Id);
+                if (storeRefResult.IsFailure) return storeRefResult.ToProblemDetail();
+                
+                httpResponse.Cookies.Append("refreshToken", refreshTokenResult.Value, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = false, // TODO: fix it in production
+                    SameSite = SameSiteMode.Strict,
+                    Expires = storeRefResult.Value.ExpireAt
+                });
                 
                 return Results.Ok(new
                 {
@@ -93,6 +106,9 @@ public class AuthEndpoint: IEndpointGroup
             if (accessTokenResult.IsFailure) return accessTokenResult.ToProblemDetail(); 
             if (refreshTokenResult.IsFailure) return refreshTokenResult.ToProblemDetail();
             
+            var storeRefResult = await authService.StoreRefreshTokenAsync(refreshTokenResult.Value, userResult.Value.Id);
+            if (storeRefResult.IsFailure) return storeRefResult.ToProblemDetail();
+            
             return Results.Ok(new
             {
                 accessToken = accessTokenResult.Value,
@@ -100,5 +116,53 @@ public class AuthEndpoint: IEndpointGroup
             });
             
         }).RequireAuthorization("REGISTER");
+
+        auth.MapPost("refresh", async (HttpRequest httpRequest, HttpResponse httpResponse, IAuthRepository authRepository, IAuthService authService, IUserRepository userRepository, CancellationToken cancellationToken) =>
+        {
+            httpRequest.Cookies.TryGetValue("refreshToken", out var refreshToken);
+            if (refreshToken == null)
+                return Result.Failure(Error.Validation("refresh token is require")).ToProblemDetail();
+
+            var getRefreshResult = await authRepository.FindRefreshByTokenAsync(refreshToken);
+            if (getRefreshResult.IsFailure) return getRefreshResult.ToProblemDetail();
+
+            if (getRefreshResult.Value.IsRevoked || getRefreshResult.Value.ExpireAt < DateTime.Now)
+            {
+                return Result.Failure(Error.UnAuthorize()).ToProblemDetail();
+            }
+
+            getRefreshResult.Value.IsRevoked = true;
+
+            var user = await userRepository.GetUserByIdAsync(getRefreshResult.Value.UserId.ToString(), cancellationToken);
+            if (user == null) return Result.Failure(Error.NotFound("user not found")).ToProblemDetail();
+            
+            var accessTokenResult = authService.GenerateAccessToken(user);
+            var refreshTokenResult = authService.GenerateRefreshToken();
+                
+            if (accessTokenResult.IsFailure) return accessTokenResult.ToProblemDetail(); 
+            if (refreshTokenResult.IsFailure) return refreshTokenResult.ToProblemDetail();
+
+            var storeRefResult = await authService.StoreRefreshTokenAsync(refreshTokenResult.Value, user.Id);
+            var updateOldRefResult =
+                await authRepository.UpdateRefreshTokenAsync(getRefreshResult.Value, cancellationToken);
+            
+            if (storeRefResult.IsFailure) return storeRefResult.ToProblemDetail(); 
+            if (updateOldRefResult.IsFailure) return updateOldRefResult.ToProblemDetail();
+            
+            httpResponse.Cookies.Append("refreshToken", refreshTokenResult.Value, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = false, // TODO: fix it in production
+                SameSite = SameSiteMode.Strict,
+                Expires = getRefreshResult.Value.ExpireAt
+            });
+            
+            return Results.Ok(new
+            {
+                accessToken = accessTokenResult.Value,
+                refreshToken = refreshTokenResult.Value,
+            });
+
+        });
     }
 }
