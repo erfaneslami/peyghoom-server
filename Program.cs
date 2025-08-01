@@ -1,5 +1,6 @@
 
 using Peyghoom.Core.Extensions;
+using Peyghoom.Endpoints.ChatHub;
 
 namespace Peyghoom
 {
@@ -33,6 +34,8 @@ namespace Peyghoom
             
             app.MapEndpointsGroup();
 
+            app.MapHub<ChatHub>("/chatHub");
+            
             app.Run();
         }
     }

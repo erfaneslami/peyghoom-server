@@ -28,6 +28,7 @@ public static class BuilderExtensions
    private static WebApplicationBuilder AddServices(this WebApplicationBuilder builder)
    {
       builder.Services.AddMemoryCache();
+      builder.Services.AddSignalR();
       
       builder.Services.AddScoped<IAuthService, AuthService>();
       builder.Services.AddScoped<IAuthRepository, AuthRepository>();

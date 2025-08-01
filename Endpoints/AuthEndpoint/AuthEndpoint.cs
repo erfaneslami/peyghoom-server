@@ -123,7 +123,7 @@ public class AuthEndpoint: IEndpointGroup
             if (refreshToken == null)
                 return Result.Failure(Error.Validation("refresh token is require")).ToProblemDetail();
 
-            var getRefreshResult = await authRepository.FindRefreshByTokenAsync(refreshToken);
+            var getRefreshResult = await authRepository.FindRefreshByTokenAsync(refreshToken, cancellationToken);
             if (getRefreshResult.IsFailure) return getRefreshResult.ToProblemDetail();
 
             if (getRefreshResult.Value.IsRevoked || getRefreshResult.Value.ExpireAt < DateTime.Now)
