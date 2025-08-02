@@ -15,16 +15,32 @@ public static class BuilderExtensions
 {
    public static WebApplicationBuilder AddWebAppConfigs(this WebApplicationBuilder builder)
    {
-
+      builder.AddCorsConfig();
       builder.AddServices();
       builder.AddAuthenticationAuthorization();
       builder.AddOptions();
       builder.AddMongoDbConfig();
+     
       
       return builder;
    }
 
+   private static WebApplicationBuilder AddCorsConfig(this WebApplicationBuilder builder)
+   {
+      builder.Services.AddCors(option =>
+      {
+         option.AddPolicy("cors", policy =>
+         {
+            policy.WithOrigins("http://localhost:3000");
+            policy.AllowAnyHeader();
+            policy.AllowAnyMethod();
+            policy.AllowCredentials();
+            policy.SetIsOriginAllowed(host => true);
+         });
+      });
 
+      return builder;
+   }
    private static WebApplicationBuilder AddServices(this WebApplicationBuilder builder)
    {
       builder.Services.AddMemoryCache();
@@ -78,6 +94,24 @@ public static class BuilderExtensions
                ValidateLifetime = true,
                ClockSkew = TimeSpan.Zero,
                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenOption.SecretKey))
+            };
+            options.Events = new JwtBearerEvents
+            {
+               OnMessageReceived = context =>
+               {
+                  var accessToken = context.Request.Query["access_token"];
+
+                  // If the request is for our hub...
+                  var path = context.HttpContext.Request.Path;
+                  if (!string.IsNullOrEmpty(accessToken) &&
+                      (path.StartsWithSegments("/chatHub")))
+                  {
+                     // Read the token out of the query string
+                     context.Token = accessToken;
+                  }
+
+                  return Task.CompletedTask;
+               }
             };
          });
 

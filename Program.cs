@@ -27,6 +27,7 @@ namespace Peyghoom
                 app.MapOpenApi();
             }
 
+            app.UseCors("cors");
             app.UseHttpsRedirection();
 
             app.UseAuthentication();

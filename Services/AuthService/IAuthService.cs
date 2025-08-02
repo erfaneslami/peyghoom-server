@@ -14,7 +14,7 @@ public interface IAuthService
    public Result<string> GenerateAccessToken(User user);
    public Result<string> GenerateRefreshToken();
    public Task<Result<RefreshToken>> StoreRefreshTokenAsync(string token, ObjectId userId);
-   public Result ValidateOtp(long phoneNumber, string otp);
+   public Result ValidateOtp(long phoneNumber, long otp);
 }
 
 public class RegisterUserCommand

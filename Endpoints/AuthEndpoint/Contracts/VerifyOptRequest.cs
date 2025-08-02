@@ -2,5 +2,5 @@
 
 public class VerifyOptRequest
 {
-    public required string Code { get; set; } 
+    public required long Code { get; set; } 
 }

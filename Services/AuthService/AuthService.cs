@@ -90,7 +90,7 @@ public class AuthService: IAuthService
         {
             new ("purpose", "user"),
             new ("phone_number", user.PhoneNumber.ToString()),
-            new ("sub", user.Id.ToString()),
+            new (ClaimTypes.NameIdentifier, user.Id.ToString()),
             new ("user_name", user.UserName),
         };
         return _generateToken(expireDate, claims);
@@ -119,7 +119,7 @@ public class AuthService: IAuthService
     }
 
 
-    public Result ValidateOtp(long phoneNumber, string otp)
+    public Result ValidateOtp(long phoneNumber, long otp)
     {
         var otpCacheInfoResult = _cacheService.GetOtpInfo(phoneNumber);
         if (otpCacheInfoResult.IsFailure) return Result.Failure(otpCacheInfoResult.Error);
@@ -134,11 +134,11 @@ public class AuthService: IAuthService
         }
     }
 
-    private string _generateRandomOtp()
+    private long _generateRandomOtp()
     {
         var random = new Random();
         int otp = random.Next(10000, 99999);
-        return otp.ToString();
+        return otp;
     }
 
     private string _generateToken(DateTime expireDate, IEnumerable<Claim> claims)

@@ -14,7 +14,7 @@ public class CacheService: ICacheService
         _memoryCache = memoryCache;
     }
 
-    public Result CachePhoneNumberOtp(long phoneNumber, string otp)
+    public Result CachePhoneNumberOtp(long phoneNumber, long otp)
     {
         _memoryCache.TryGetValue(phoneNumber, out var otpInfo);
         
